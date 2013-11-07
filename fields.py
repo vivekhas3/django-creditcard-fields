@@ -19,6 +19,7 @@ class CreditCardField(forms.CharField):
     default_error_messages = {
         'required': _(u'Please enter a credit card number.'),
         'invalid': _(u'The credit card number you entered is invalid.'),
+        'invalid_luhn': _(u'The credit card number you entered doesn't have a valid checksum'),
     }
 
     def clean(self, value):
@@ -27,7 +28,35 @@ class CreditCardField(forms.CharField):
             raise forms.util.ValidationError(self.error_messages['required'])
         if value and not re.match(CREDIT_CARD_RE, value):
             raise forms.util.ValidationError(self.error_messages['invalid'])
+        if value and not self._is_satisfy_luhn(value): #Luhn Algorithm Validation
+            raise forms.util.ValidationError(self.error_messages['invalid_luhn'])
         return value
+    def _is_satisfy_luhn(self,value):
+        """
+        Tells if the submitted value clears luhn algorithm or not
+        """
+        return True if CreditCardField.luhn_checksum(value) == 0  else False
+    @staticmethod
+    def luhn_checksum(card_number):
+        """
+        Method to run the LUHN algorithm.
+        Args:
+            card_number: the card number
+        Returns:
+            checksum: the resultant checksum
+        """
+        def digits_of(n):
+            return [int(d) for d in str(n)]
+        digits = digits_of(card_number)
+        if digits[0] not in (4,5):
+            return 1
+        odd_digits = digits[-1::-2]
+        even_digits = digits[-2::-2]
+        checksum = 0
+        checksum += sum(odd_digits)
+        for d in even_digits:
+            checksum += sum(digits_of(d*2))
+        return checksum % 10
 
 
 class ExpiryDateWidget(forms.MultiWidget):
