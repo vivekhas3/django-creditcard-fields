@@ -19,7 +19,7 @@ class CreditCardField(forms.CharField):
     default_error_messages = {
         'required': _(u'Please enter a credit card number.'),
         'invalid': _(u'The credit card number you entered is invalid.'),
-        'invalid_luhn': _(u'The credit card number you entered doesn't have a valid checksum'),
+        'invalid_luhn': _(u'The credit card number you entered doesn\'t have a valid checksum.'),
     }
 
     def clean(self, value):
